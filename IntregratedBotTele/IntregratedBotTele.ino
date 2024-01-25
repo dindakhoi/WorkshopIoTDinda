@@ -1,8 +1,8 @@
 #include "DHT.h"
 #define DHTPIN 4
 #define DHTTYPE DHT11
-#include <Wifi.h>
-#include <WifiClientSecure.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h>
 #include <ArduinoJson.h>
 DHT dht(DHTPIN, DHTTYPE);
@@ -10,24 +10,24 @@ int M,sensor_analog;
 const int sensor_pin = 34;
 const char* ssid ="Hello there";
 const char* password ="gitagita";
-#define CHAT_ID "6326756976";
+#define CHAT_ID "6326756976"
 #define BOTtoken "6731581597:AAG-m0iFaUeFDH8cR53_qFRfjteTbYd7rOo"
 
-WifiClientSecure client;
+WiFiClientSecure client;
 UniversalTelegramBot bot(BOTtoken, client);
 int botRequestDelay = 1000;
 unsigned long lastTimeBotRan;
 
 void setup() {
   Serial.begin(115200);
-  Serial.print("Conneting Wifi:")
+  Serial.print("Conneting Wifi:");
   Serial.println(ssid);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
 
-  while (Wifi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);
   } 
@@ -63,5 +63,19 @@ void loop() {
   Serial.print("Kelembapan air tanah: ");
   Serial.print(M);
   Serial.println(" %");
-  delay(2000);
+  bot.sendMessage(CHAT_ID, "Monitoring tanaman SMKN 7 Baleendah");
+  kirimPesanTelegram(h, t, M);
+}
+void kirimPesanTelegram(float h, float t, int M) {
+  String pesan = "Suhu saat ini: " + String(t, 2) + "°C\n" +
+                 "Humiditas udara saat ini: " + String(h, 2) + "%\n" +
+                 "Tingkat kelembaban tanah saat ini: " + String(M) + "%\n";
+
+  if (bot.sendMessage(CHAT_ID, pesan, "Markdown")) {
+    Serial.println("Pesan berhasil dikirim");
+  } else {
+    Serial.println("Gagal mengirim pesan");
+  }
+
+  delay(1000);  // Menunggu sejenak sebelum mengirim pesan lagi
 }
